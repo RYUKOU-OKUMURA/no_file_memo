@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>MemoTuck - 思いついたら、ひとまずタック</title>
-    <meta name="description" content="思いついたら、ひとまずタック。シンプルなメモ管理アプリ。">
+    <title>No File Memory - 残さないメモ</title>
+    <meta name="description" content="残さないメモ。シンプルなメモ管理アプリ。">
     <style>
-        /* MemoTuck - アンティーク調羊皮紙風スタイル */
+        /* No File Memory - アンティーク調羊皮紙風スタイル */
         
         :root {
             /* 羊皮紙風アンティークカラーパレット */
@@ -663,8 +663,8 @@
 <body>
     <div class="container">
         <header class="header">
-            <h1>MemoTuck</h1>
-            <p class="subtitle">思いついたら、ひとまずタック</p>
+            <h1>No File Memory</h1>
+            <p class="subtitle">残さないメモ</p>
         </header>
 
         <!-- メモ作成フォーム -->
@@ -760,11 +760,11 @@
 
     <script>
         /**
-         * MemoTuck - シンプルメモアプリ
+         * No File Memory - シンプルメモアプリ
          * ローカルストレージベースの実装
          */
 
-        const STORAGE_KEY = 'memotuck-data';
+        const STORAGE_KEY = 'nofilememory-data';
         let appState = {
             memos: [],
             lastExportAt: null
@@ -1088,7 +1088,7 @@
 
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `memotuck-export-${new Date().toISOString().slice(0, 10)}.json`;
+                a.download = `nofilememory-export-${new Date().toISOString().slice(0, 10)}.json`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);

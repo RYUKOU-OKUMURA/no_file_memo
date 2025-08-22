@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple HTTP server for MemoTuck application
+Simple HTTP server for No File Memory application
 """
 import http.server
 import socketserver
@@ -27,7 +27,7 @@ if __name__ == "__main__":
     
     # Create and start server
     with socketserver.TCPServer(("0.0.0.0", PORT), MemoTuckHandler) as httpd:
-        print(f"MemoTuck server running on port {PORT}")
+        print(f"No File Memory server running on port {PORT}")
         print(f"Access the application at http://localhost:{PORT}/memotuck.html")
         sys.stdout.flush()
         httpd.serve_forever()

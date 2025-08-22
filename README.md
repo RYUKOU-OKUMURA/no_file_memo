@@ -1,8 +1,8 @@
-# MemoTuck - シンプルなメモ管理アプリ
+# No File Memory - シンプルなメモ管理アプリ
 
-**思いついたら、ひとまずタック！**
+**残さないメモ！**
 
-MemoTuck は、アンティーク調のデザインが特徴的なシンプルなメモ管理アプリケーションです。ローカルストレージを使用してブラウザ上でメモを管理できます。
+No File Memory は、アンティーク調のデザインが特徴的なシンプルなメモ管理アプリケーションです。ローカルストレージを使用してブラウザ上でメモを管理できます。
 
 ## 特徴
 
@@ -28,7 +28,7 @@ open memotuck.html
 ```bash
 # PM2を使用してHTTPサーバーを起動
 npm install -g pm2
-pm2 serve . 8080 --name "memotuck-server"
+pm2 serve . 8080 --name "nofilememory-server"
 ```
 
 ### 2. 基本機能
@@ -102,4 +102,4 @@ pm2 serve . 8080 --name "memotuck-server"
 
 ---
 
-**MemoTuck** - 思いついたことを、ひとまずタック！
+**No File Memory** - 残さないメモ！
