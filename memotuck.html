@@ -689,11 +689,7 @@
             <div class="form-actions">
                 <button onclick="saveMemo()" class="btn-primary">保存</button>
                 <button onclick="clearForm()" class="btn-secondary">クリア</button>
-                <button onclick="exportMemos()" class="btn-secondary">エクスポート</button>
-                <label class="btn-secondary" style="cursor: pointer;">
-                    インポート
-                    <input type="file" id="importFile" accept=".json" onchange="importMemos()" style="display: none;">
-                </label>
+
             </div>
         </div>
 
@@ -1074,69 +1070,10 @@
             showToast('メモを更新しました', 'success');
         }
 
-        // エクスポート・インポート
-        function exportMemos() {
-            if (appState.memos.length === 0) {
-                showToast('エクスポートするメモがありません', 'info');
-                return;
-            }
 
-            try {
-                appState.lastExportAt = new Date().toISOString();
-                const dataStr = JSON.stringify(appState, null, 2);
-                const blob = new Blob([dataStr], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
 
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `nofilememory-export-${new Date().toISOString().slice(0, 10)}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
 
-                saveData();
-                showToast('メモをエクスポートしました', 'success');
-            } catch (error) {
-                console.error('エクスポートに失敗しました:', error);
-                showToast('エクスポートに失敗しました', 'error');
-            }
-        }
 
-        function importMemos() {
-            const file = document.getElementById('importFile').files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-
-                    if (!importedData.memos || !Array.isArray(importedData.memos)) {
-                        throw new Error('無効なファイル形式です');
-                    }
-
-                    const existingIds = new Set(appState.memos.map(m => m.id));
-                    const newMemos = importedData.memos.filter(m => !existingIds.has(m.id));
-
-                    appState.memos.push(...newMemos);
-                    appState.memos.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-                    saveData();
-                    renderMemos();
-                    updateFilters();
-                    updateStatus();
-
-                    showToast(`${newMemos.length}件のメモをインポートしました`, 'success');
-                } catch (error) {
-                    console.error('インポートに失敗しました:', error);
-                    showToast('インポートに失敗しました: ' + error.message, 'error');
-                }
-            };
-            reader.readAsText(file);
-
-            document.getElementById('importFile').value = '';
-        }
 
         // ユーティリティ関数
         function formatDate(isoString) {
