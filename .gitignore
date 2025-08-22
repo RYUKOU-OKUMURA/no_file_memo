@@ -1,0 +1,27 @@
+# Supervisor logs and runtime files
+supervisord.log
+supervisord.pid
+supervisor.sock
+memotuck.log
+memotuck_error.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+
+# Node modules (if used)
+node_modules/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Temporary files
+*.tmp
+*.temp

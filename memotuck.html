@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MemoTuck - 思いついたら、ひとまずタック</title>
+    <meta name="description" content="思いついたら、ひとまずタック。シンプルなメモ管理アプリ。">
+    <style>
+        /* MemoTuck - アンティーク調羊皮紙風スタイル */
+        
+        :root {
+            /* 羊皮紙風アンティークカラーパレット */
+            --parchment-bg: #F4F1E8;
+            --aged-paper: #EDE8DD;
+            --warm-cream: #F8F3E7;
+            --antique-brown: #8B6F47;
+            --dark-sepia: #5D4E37;
+            --leather-brown: #964B00;
+            --copper-accent: #B87333;
+            --old-gold: #CFB53B;
+            
+            /* アンティーク調メインカラー */
+            --primary-color: #5D4E37;
+            --secondary-color: #D2B48C;
+            --accent-color: #B87333;
+            --success-color: #8FBC8F;
+            --danger-color: #CD853F;
+            --warning-color: #DDB06B;
+            
+            /* 羊皮紙の質感 */
+            --workspace-bg: #F4F1E8;
+            --paper-bg: #F8F3E7;
+            --aged-bg: #EDE8DD;
+            --wood-bg: #D2B48C;
+            --metal-accent: #8B6F47;
+            
+            /* アンティーク調テキストと境界 */
+            --text-color: #3E2723;
+            --text-muted: #6D4C41;
+            --border-color: #D7CCC8;
+            --divider-color: #A1887F;
+            --dark-gray: #5D4037;
+            --medium-gray: #8D6E63;
+            --light-gray: #EFEBE9;
+            
+            /* アンティーク調の影とエフェクト */
+            --shadow: 0 4px 12px rgba(93, 78, 55, 0.2);
+            --text-shadow: 0.5px 0.5px 1px rgba(62, 39, 35, 0.15);
+            --parchment-shadow: 0 6px 20px rgba(139, 111, 71, 0.25);
+            --book-shadow: 0 8px 24px rgba(93, 78, 55, 0.3);
+            
+            /* 角の丸み */
+            --radius: 6px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            margin: 0;
+            padding: 0;
+            background: var(--parchment-bg);
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(139, 111, 71, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(184, 115, 51, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 50% 10%, rgba(210, 180, 140, 0.08) 0%, transparent 30%),
+                linear-gradient(135deg, var(--aged-paper) 0%, var(--parchment-bg) 50%, var(--warm-cream) 100%);
+            color: var(--text-color);
+            line-height: 1.6;
+            text-shadow: var(--text-shadow);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 30px 25px;
+            background: var(--paper-bg);
+            border: 3px solid var(--border-color);
+            border-radius: 12px 8px 10px 15px;
+            box-shadow: 
+                0 8px 32px rgba(93, 78, 55, 0.15),
+                inset 0 1px 0 rgba(248, 243, 231, 0.8);
+            position: relative;
+            min-height: calc(100vh - 60px);
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(139, 111, 71, 0.03) 0%, transparent 25%),
+                radial-gradient(circle at 80% 20%, rgba(160, 82, 45, 0.02) 0%, transparent 20%);
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(90deg, 
+                var(--antique-brown), 
+                var(--copper-accent), 
+                var(--old-gold), 
+                var(--copper-accent), 
+                var(--antique-brown)
+            );
+            border-radius: 12px 8px 0 0;
+            opacity: 0.7;
+        }
+
+        /* ヘッダー */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px 0;
+            border-bottom: 2px solid var(--divider-color);
+            position: relative;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 3em;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(93, 78, 55, 0.3);
+            transform: rotate(-1deg);
+        }
+
+        .header .subtitle {
+            margin: 10px 0 0 0;
+            color: var(--text-muted);
+            font-size: 1.1em;
+            font-style: italic;
+            font-weight: 700;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 1px;
+            background: var(--accent-color);
+        }
+
+        /* メモ作成フォーム */
+        .memo-form {
+            background: var(--aged-paper);
+            border: 2px solid var(--antique-brown);
+            border-radius: 8px 6px 10px 7px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: var(--book-shadow);
+            position: relative;
+            transform: rotate(0.1deg);
+        }
+
+        .memo-form::before {
+            content: '📝';
+            position: absolute;
+            top: -15px;
+            left: 25px;
+            background: var(--aged-paper);
+            padding: 0 8px;
+            font-size: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .form-row input,
+        .form-row select {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid var(--antique-brown);
+            border-radius: 6px 8px 7px 5px;
+            font-size: 14px;
+            background: var(--warm-cream);
+            color: var(--text-color);
+            box-shadow: inset 0 2px 4px rgba(93, 78, 55, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .form-row input:focus,
+        .form-row select:focus {
+            outline: none;
+            border-color: var(--copper-accent);
+            box-shadow: inset 0 2px 4px rgba(93, 78, 55, 0.15), 0 0 8px rgba(184, 115, 51, 0.3);
+            background: var(--paper-bg);
+        }
+
+        .memo-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid var(--antique-brown);
+            border-radius: var(--radius);
+            font-family: 'Georgia', serif;
+            font-size: 16px;
+            line-height: 1.6;
+            background: var(--warm-cream);
+            color: var(--text-color);
+            resize: vertical;
+            box-shadow: inset 0 2px 4px rgba(93, 78, 55, 0.1);
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .memo-textarea:focus {
+            outline: none;
+            border-color: var(--copper-accent);
+            box-shadow: inset 0 2px 4px rgba(93, 78, 55, 0.15), 0 0 8px rgba(184, 115, 51, 0.3);
+            background: var(--paper-bg);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-primary {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--copper-accent) 0%, var(--antique-brown) 100%);
+            color: var(--warm-cream);
+            border: 2px solid var(--dark-sepia);
+            border-radius: 8px 6px 10px 7px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+            text-shadow: 1px 1px 2px rgba(93, 78, 55, 0.6);
+            box-shadow: 0 4px 8px rgba(93, 78, 55, 0.25), inset 0 1px 0 rgba(248, 243, 231, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--old-gold) 0%, var(--copper-accent) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(93, 78, 55, 0.3), inset 0 1px 0 rgba(248, 243, 231, 0.3);
+        }
+
+        .btn-secondary {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--antique-brown) 100%);
+            color: var(--warm-cream);
+            border: 2px solid var(--antique-brown);
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(93, 78, 55, 0.6);
+            box-shadow: 0 3px 6px rgba(93, 78, 55, 0.2);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, var(--warning-color) 0%, var(--copper-accent) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(93, 78, 55, 0.25);
+        }
+
+        /* フィルター */
+        .filters {
+            background: var(--aged-paper);
+            border: 2px solid var(--antique-brown);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .filter-row input,
+        .filter-row select {
+            flex: 1;
+            min-width: 150px;
+            padding: 10px 15px;
+            border: 1px solid var(--antique-brown);
+            border-radius: var(--radius);
+            font-size: 13px;
+            background: var(--warm-cream);
+            color: var(--text-color);
+            box-shadow: inset 0 1px 3px rgba(93, 78, 55, 0.1);
+        }
+
+        .filter-row input:focus,
+        .filter-row select:focus {
+            outline: none;
+            border-color: var(--copper-accent);
+            box-shadow: inset 0 1px 3px rgba(93, 78, 55, 0.15), 0 0 6px rgba(184, 115, 51, 0.3);
+        }
+
+        /* メモ一覧 */
+        .memos-list {
+            background: var(--parchment-bg);
+            border-radius: 10px 8px 12px 6px;
+            box-shadow: var(--parchment-shadow);
+            overflow: visible;
+            position: relative;
+            border: 2px solid var(--antique-brown);
+        }
+
+        .memo-item {
+            background: var(--aged-paper);
+            border: 2px solid var(--antique-brown);
+            border-radius: 8px 6px 10px 5px;
+            margin-bottom: 12px;
+            padding: 20px;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 4px 8px rgba(93, 78, 55, 0.15),
+                inset 0 1px 0 rgba(248, 243, 231, 0.6);
+            transform: rotate(0deg);
+        }
+
+        .memo-item:nth-child(odd) {
+            transform: rotate(0.5deg);
+        }
+
+        .memo-item:nth-child(even) {
+            transform: rotate(-0.3deg);
+        }
+
+        .memo-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-top: 12px solid var(--copper-accent);
+            z-index: 2;
+            opacity: 0.7;
+        }
+
+        .memo-item::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--copper-accent), var(--antique-brown));
+            border-radius: 4px 0 0 4px;
+            opacity: 0.6;
+        }
+
+        .memo-item:hover {
+            background: var(--warm-cream);
+            box-shadow: 
+                0 6px 12px rgba(93, 78, 55, 0.2),
+                inset 0 1px 0 rgba(248, 243, 231, 0.8);
+        }
+
+        .memo-item:nth-child(odd):hover {
+            transform: translateY(-3px) rotate(1deg);
+        }
+
+        .memo-item:nth-child(even):hover {
+            transform: translateY(-3px) rotate(-0.8deg);
+        }
+
+        .memo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .memo-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0;
+            flex: 1;
+            margin-right: 15px;
+        }
+
+        .memo-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .memo-actions button {
+            width: 32px;
+            height: 32px;
+            border: 2px solid var(--accent-color);
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 14px;
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--primary-color) 100%);
+            color: var(--paper-bg);
+            transition: all 0.3s ease;
+        }
+
+        .memo-actions button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(93, 78, 55, 0.3);
+        }
+
+        .memo-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .memo-category {
+            background: linear-gradient(45deg, var(--warning-color) 0%, var(--secondary-color) 100%);
+            color: var(--dark-sepia);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            font-style: normal;
+        }
+
+        .memo-content {
+            color: var(--text-color);
+            line-height: 1.6;
+            white-space: pre-wrap;
+            margin-bottom: 10px;
+        }
+
+        .memo-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .tag {
+            background: linear-gradient(45deg, var(--warning-color) 0%, var(--secondary-color) 100%);
+            color: var(--dark-sepia);
+            padding: 3px 10px;
+            border: 1px solid var(--antique-brown);
+            border-radius: 12px 6px 10px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(93, 78, 55, 0.15);
+            transform: rotate(-1deg);
+            display: inline-block;
+            margin: 2px;
+        }
+
+        .tag:nth-child(even) {
+            transform: rotate(1deg);
+        }
+
+        .tag:hover {
+            background: linear-gradient(45deg, var(--copper-accent) 0%, var(--old-gold) 100%);
+            color: var(--warm-cream);
+            transform: translateY(-1px) rotate(0.5deg);
+        }
+
+        /* 空の状態 */
+        .empty-state {
+            text-align: center;
+            padding: 80px 25px;
+            color: var(--text-muted);
+            background: var(--aged-paper);
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius);
+            margin: 20px 0;
+        }
+
+        .empty-state p {
+            font-size: 18px;
+            margin: 0;
+            font-style: italic;
+        }
+
+        /* ステータス */
+        .status {
+            text-align: center;
+            padding: 18px;
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            margin-top: 25px;
+            font-size: 14px;
+            color: var(--text-muted);
+            font-style: italic;
+            box-shadow: var(--shadow);
+        }
+
+        /* トースト通知 */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: var(--radius);
+            color: white;
+            font-weight: bold;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+            max-width: 300px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background: var(--success-color);
+        }
+
+        .toast.error {
+            background: var(--danger-color);
+        }
+
+        .toast.info {
+            background: var(--primary-color);
+        }
+
+        /* モーダル */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--paper-bg);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius);
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--book-shadow);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: var(--primary-color);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--dark-gray);
+        }
+
+        .btn-cancel {
+            padding: 10px 20px;
+            border: 2px solid #7A7A7A;
+            background: linear-gradient(135deg, #8E8E8E 0%, #7A7A7A 100%);
+            color: var(--paper-bg);
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .btn-save {
+            padding: 10px 20px;
+            border: 2px solid var(--success-color);
+            background: linear-gradient(135deg, #83B461 0%, var(--success-color) 100%);
+            color: var(--paper-bg);
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* レスポンシブ対応 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2.2em;
+            }
+            
+            .form-row,
+            .filter-row {
+                flex-direction: column;
+            }
+            
+            .form-row input,
+            .form-row select,
+            .filter-row input,
+            .filter-row select {
+                min-width: auto;
+            }
+            
+            .memo-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .memo-actions {
+                align-self: flex-end;
+            }
+            
+            .memo-meta {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>MemoTuck</h1>
+            <p class="subtitle">思いついたら、ひとまずタック</p>
+        </header>
+
+        <!-- メモ作成フォーム -->
+        <div class="memo-form">
+            <div class="form-row">
+                <input type="text" id="memoTitle" placeholder="メモのタイトル（任意）">
+                <select id="memoCategory">
+                    <option value="">カテゴリなし</option>
+                    <option value="仕事">仕事</option>
+                    <option value="プライベート">プライベート</option>
+                    <option value="アイデア">アイデア</option>
+                    <option value="TODO">TODO</option>
+                    <option value="メモ">メモ</option>
+                    <option value="学習">学習</option>
+                </select>
+            </div>
+            <textarea id="memoContent" class="memo-textarea" placeholder="ここにメモを入力してください..."></textarea>
+            <div class="form-row">
+                <input type="text" id="memoTags" placeholder="タグ（カンマ区切り）例: 重要, 緊急, アイデア">
+            </div>
+            <div class="form-actions">
+                <button onclick="saveMemo()" class="btn-primary">保存</button>
+                <button onclick="clearForm()" class="btn-secondary">クリア</button>
+                <button onclick="exportMemos()" class="btn-secondary">エクスポート</button>
+                <label class="btn-secondary" style="cursor: pointer;">
+                    インポート
+                    <input type="file" id="importFile" accept=".json" onchange="importMemos()" style="display: none;">
+                </label>
+            </div>
+        </div>
+
+        <!-- フィルター -->
+        <div class="filters">
+            <div class="filter-row">
+                <input type="text" id="searchInput" placeholder="メモを検索..." oninput="filterMemos()">
+                <select id="categoryFilter" onchange="filterMemos()">
+                    <option value="">すべてのカテゴリ</option>
+                </select>
+                <select id="tagFilter" onchange="filterMemos()">
+                    <option value="">すべてのタグ</option>
+                </select>
+            </div>
+            <div class="filter-row">
+                <select id="sortBy" onchange="filterMemos()">
+                    <option value="newest">新しい順</option>
+                    <option value="oldest">古い順</option>
+                    <option value="title">タイトル順</option>
+                    <option value="category">カテゴリ順</option>
+                </select>
+                <button onclick="deleteAllMemos()" class="btn-secondary" style="background: linear-gradient(135deg, #DC6E6E 0%, #C85A5A 100%); border-color: #C85A5A;">全て削除</button>
+            </div>
+        </div>
+
+        <!-- メモ一覧 -->
+        <div class="memos-list" id="memosList"></div>
+
+        <!-- ステータス -->
+        <div class="status" id="status"></div>
+    </div>
+
+    <!-- トースト通知 -->
+    <div class="toast" id="toast"></div>
+
+    <!-- 編集モーダル -->
+    <div class="modal" id="editModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>メモを編集</h3>
+                <button class="close-btn" onclick="closeEditModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 15px;">
+                    <input type="text" id="editMemoTitle" placeholder="メモのタイトル" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px;">
+                    <select id="editMemoCategory" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px;">
+                        <option value="">カテゴリなし</option>
+                        <option value="仕事">仕事</option>
+                        <option value="プライベート">プライベート</option>
+                        <option value="アイデア">アイデア</option>
+                        <option value="TODO">TODO</option>
+                        <option value="メモ">メモ</option>
+                        <option value="学習">学習</option>
+                    </select>
+                    <textarea id="editMemoContent" style="width: 100%; min-height: 120px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: Georgia, serif; margin-bottom: 10px;"></textarea>
+                    <input type="text" id="editMemoTags" placeholder="タグ（カンマ区切り）" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeEditModal()">キャンセル</button>
+                <button class="btn-save" onclick="saveEditMemo()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * MemoTuck - シンプルメモアプリ
+         * ローカルストレージベースの実装
+         */
+
+        const STORAGE_KEY = 'memotuck-data';
+        let appState = {
+            memos: [],
+            lastExportAt: null
+        };
+
+        let filteredMemos = [];
+        let currentEditingId = null;
+
+        // 初期化
+        function initializeApp() {
+            loadData();
+            renderMemos();
+            updateFilters();
+            updateStatus();
+        }
+
+        // データ読み込み
+        function loadData() {
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (stored) {
+                    appState = JSON.parse(stored);
+                    if (!Array.isArray(appState.memos)) {
+                        appState.memos = [];
+                    }
+                }
+            } catch (error) {
+                console.error('データの読み込みに失敗しました:', error);
+                appState = { memos: [], lastExportAt: null };
+            }
+        }
+
+        // データ保存
+        function saveData() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+            } catch (error) {
+                console.error('データの保存に失敗しました:', error);
+                showToast('ストレージ容量が不足しています。古いメモを削除してください。', 'error');
+            }
+        }
+
+        // ID生成
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        // メモ保存
+        function saveMemo() {
+            const title = document.getElementById('memoTitle').value.trim();
+            const content = document.getElementById('memoContent').value.trim();
+            const category = document.getElementById('memoCategory').value;
+            const tagsInput = document.getElementById('memoTags').value.trim();
+
+            if (!content) {
+                showToast('メモの内容を入力してください', 'error');
+                return;
+            }
+
+            const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
+
+            const memo = {
+                id: generateId(),
+                title: title || '無題のメモ',
+                content: content,
+                category: category,
+                tags: tags,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+
+            appState.memos.unshift(memo);
+            saveData();
+            renderMemos();
+            updateFilters();
+            updateStatus();
+            clearForm();
+
+            showToast('メモを保存しました', 'success');
+        }
+
+        // フォームクリア
+        function clearForm() {
+            document.getElementById('memoTitle').value = '';
+            document.getElementById('memoContent').value = '';
+            document.getElementById('memoCategory').value = '';
+            document.getElementById('memoTags').value = '';
+        }
+
+        // メモフィルタリング
+        function filterMemos() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const tagFilter = document.getElementById('tagFilter').value;
+            const sortBy = document.getElementById('sortBy').value;
+
+            filteredMemos = appState.memos.filter(memo => {
+                // 検索文字列でフィルタ
+                if (searchTerm) {
+                    const searchableText = (memo.title + ' ' + memo.content + ' ' + memo.tags.join(' ')).toLowerCase();
+                    if (!searchableText.includes(searchTerm)) return false;
+                }
+
+                // カテゴリでフィルタ
+                if (categoryFilter && memo.category !== categoryFilter) return false;
+
+                // タグでフィルタ
+                if (tagFilter && !memo.tags.includes(tagFilter)) return false;
+
+                return true;
+            });
+
+            // ソート
+            switch (sortBy) {
+                case 'newest':
+                    filteredMemos.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    break;
+                case 'oldest':
+                    filteredMemos.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                    break;
+                case 'title':
+                    filteredMemos.sort((a, b) => a.title.localeCompare(b.title));
+                    break;
+                case 'category':
+                    filteredMemos.sort((a, b) => (a.category || '').localeCompare(b.category || ''));
+                    break;
+            }
+
+            renderMemosList();
+        }
+
+        // メモ一覧描画
+        function renderMemos() {
+            filterMemos();
+        }
+
+        function renderMemosList() {
+            const container = document.getElementById('memosList');
+
+            if (filteredMemos.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>メモがありません</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = filteredMemos.map(memo => {
+                const formattedDate = formatDate(memo.createdAt);
+                const tagsHtml = memo.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('');
+                const categoryHtml = memo.category ? `<span class="memo-category">${escapeHtml(memo.category)}</span>` : '';
+
+                return `
+                    <div class="memo-item">
+                        <div class="memo-header">
+                            <h3 class="memo-title">${escapeHtml(memo.title)}</h3>
+                            <div class="memo-actions">
+                                <button onclick="openEditModal('${memo.id}')" title="編集">✏️</button>
+                                <button onclick="deleteMemo('${memo.id}')" title="削除">🗑️</button>
+                            </div>
+                        </div>
+                        <div class="memo-meta">
+                            ${categoryHtml}
+                            <span>${formattedDate}</span>
+                        </div>
+                        <div class="memo-content">${escapeHtml(memo.content)}</div>
+                        ${tagsHtml ? `<div class="memo-tags">${tagsHtml}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        // フィルター更新
+        function updateFilters() {
+            updateCategoryFilter();
+            updateTagFilter();
+        }
+
+        function updateCategoryFilter() {
+            const categoryFilter = document.getElementById('categoryFilter');
+            const categories = [...new Set(appState.memos.map(memo => memo.category).filter(cat => cat))];
+            const currentValue = categoryFilter.value;
+
+            categoryFilter.innerHTML = '<option value="">すべてのカテゴリ</option>' +
+                categories.map(category => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`).join('');
+
+            if (categories.includes(currentValue)) {
+                categoryFilter.value = currentValue;
+            }
+        }
+
+        function updateTagFilter() {
+            const tagFilter = document.getElementById('tagFilter');
+            const allTags = new Set();
+            appState.memos.forEach(memo => {
+                memo.tags.forEach(tag => allTags.add(tag));
+            });
+
+            const sortedTags = Array.from(allTags).sort();
+            const currentValue = tagFilter.value;
+
+            tagFilter.innerHTML = '<option value="">すべてのタグ</option>' +
+                sortedTags.map(tag => `<option value="${escapeHtml(tag)}">${escapeHtml(tag)}</option>`).join('');
+
+            if (sortedTags.includes(currentValue)) {
+                tagFilter.value = currentValue;
+            }
+        }
+
+        // ステータス更新
+        function updateStatus() {
+            const totalMemos = appState.memos.length;
+            const filteredCount = filteredMemos.length;
+            document.getElementById('status').textContent = `総メモ数: ${totalMemos}件, 表示中: ${filteredCount}件`;
+        }
+
+        // メモ削除
+        function deleteMemo(id) {
+            if (confirm('このメモを削除しますか？')) {
+                appState.memos = appState.memos.filter(memo => memo.id !== id);
+                saveData();
+                renderMemos();
+                updateFilters();
+                updateStatus();
+                showToast('メモを削除しました', 'success');
+            }
+        }
+
+        // 全メモ削除
+        function deleteAllMemos() {
+            if (appState.memos.length === 0) {
+                showToast('削除するメモがありません', 'info');
+                return;
+            }
+
+            const confirmMessage = `⚠️ 危険な操作です！\n\n${appState.memos.length}件のメモを全て削除しますか？\n\nこの操作は元に戻せません。`;
+            
+            if (confirm(confirmMessage)) {
+                const secondConfirm = confirm('本当によろしいですか？この操作は元に戻すことができません。');
+                
+                if (secondConfirm) {
+                    const deletedCount = appState.memos.length;
+                    appState.memos = [];
+                    saveData();
+                    renderMemos();
+                    updateFilters();
+                    updateStatus();
+                    showToast(`${deletedCount}件のメモを削除しました`, 'success');
+                }
+            }
+        }
+
+        // 編集モーダル
+        function openEditModal(memoId) {
+            const memo = appState.memos.find(m => m.id === memoId);
+            if (!memo) return;
+
+            currentEditingId = memoId;
+
+            document.getElementById('editMemoTitle').value = memo.title;
+            document.getElementById('editMemoCategory').value = memo.category || '';
+            document.getElementById('editMemoContent').value = memo.content;
+            document.getElementById('editMemoTags').value = memo.tags.join(', ');
+
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            currentEditingId = null;
+        }
+
+        function saveEditMemo() {
+            if (!currentEditingId) return;
+
+            const memo = appState.memos.find(m => m.id === currentEditingId);
+            if (!memo) return;
+
+            const title = document.getElementById('editMemoTitle').value.trim();
+            const content = document.getElementById('editMemoContent').value.trim();
+            const category = document.getElementById('editMemoCategory').value;
+            const tagsInput = document.getElementById('editMemoTags').value.trim();
+
+            if (!content) {
+                showToast('メモの内容を入力してください', 'error');
+                return;
+            }
+
+            const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
+
+            memo.title = title || '無題のメモ';
+            memo.content = content;
+            memo.category = category;
+            memo.tags = tags;
+            memo.updatedAt = new Date().toISOString();
+
+            saveData();
+            renderMemos();
+            updateFilters();
+            updateStatus();
+            closeEditModal();
+
+            showToast('メモを更新しました', 'success');
+        }
+
+        // エクスポート・インポート
+        function exportMemos() {
+            if (appState.memos.length === 0) {
+                showToast('エクスポートするメモがありません', 'info');
+                return;
+            }
+
+            try {
+                appState.lastExportAt = new Date().toISOString();
+                const dataStr = JSON.stringify(appState, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `memotuck-export-${new Date().toISOString().slice(0, 10)}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                saveData();
+                showToast('メモをエクスポートしました', 'success');
+            } catch (error) {
+                console.error('エクスポートに失敗しました:', error);
+                showToast('エクスポートに失敗しました', 'error');
+            }
+        }
+
+        function importMemos() {
+            const file = document.getElementById('importFile').files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+
+                    if (!importedData.memos || !Array.isArray(importedData.memos)) {
+                        throw new Error('無効なファイル形式です');
+                    }
+
+                    const existingIds = new Set(appState.memos.map(m => m.id));
+                    const newMemos = importedData.memos.filter(m => !existingIds.has(m.id));
+
+                    appState.memos.push(...newMemos);
+                    appState.memos.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+                    saveData();
+                    renderMemos();
+                    updateFilters();
+                    updateStatus();
+
+                    showToast(`${newMemos.length}件のメモをインポートしました`, 'success');
+                } catch (error) {
+                    console.error('インポートに失敗しました:', error);
+                    showToast('インポートに失敗しました: ' + error.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+
+            document.getElementById('importFile').value = '';
+        }
+
+        // ユーティリティ関数
+        function formatDate(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleString('ja-JP', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast show ${type}`;
+
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000);
+        }
+
+        // モーダルの背景クリックで閉じる
+        document.addEventListener('click', function(e) {
+            const editModal = document.getElementById('editModal');
+            if (e.target === editModal) {
+                closeEditModal();
+            }
+        });
+
+        // キーボードショートカット
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+S または Cmd+S でメモ保存
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                saveMemo();
+            }
+
+            // ESC でモーダル閉じる
+            if (e.key === 'Escape') {
+                if (document.getElementById('editModal').style.display === 'flex') {
+                    closeEditModal();
+                }
+            }
+        });
+
+        // 初期化実行
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            initializeApp();
+        }
+    </script>
+</body>
+</html>

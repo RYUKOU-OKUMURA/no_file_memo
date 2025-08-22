@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MemoTuck - リダイレクト中...</title>
+    <style>
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background: linear-gradient(135deg, #F4F1E8 0%, #EDE8DD 50%, #F8F3E7 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #5D4E37;
+        }
+        .redirect-message {
+            text-align: center;
+            background: #F8F3E7;
+            padding: 40px;
+            border: 3px solid #D7CCC8;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(93, 78, 55, 0.15);
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #5D4E37;
+        }
+        p {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+        .loading {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    <script>
+        // Redirect to memotuck.html after 2 seconds
+        setTimeout(function() {
+            window.location.href = '/memotuck.html';
+        }, 2000);
+    </script>
+</head>
+<body>
+    <div class="redirect-message">
+        <h1>MemoTuck</h1>
+        <p>思いついたら、ひとまずタック</p>
+        <p><span class="loading">📝</span> アプリケーションを読み込み中...</p>
+        <p><small>2秒後にMemoTuckアプリケーションに移動します</small></p>
+    </div>
+</body>
+</html>
