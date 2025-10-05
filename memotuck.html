@@ -333,6 +333,7 @@
                 0 4px 8px rgba(93, 78, 55, 0.15),
                 inset 0 1px 0 rgba(248, 243, 231, 0.6);
             transform: rotate(0deg);
+            cursor: pointer;
         }
 
         .memo-item:nth-child(odd) {
@@ -601,6 +602,64 @@
             position: relative;
         }
 
+        .view-modal {
+            max-width: 600px;
+            width: 95%;
+        }
+
+        .confirm-modal {
+            max-width: 420px;
+            width: 90%;
+        }
+
+        .view-modal .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .view-modal .view-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .view-modal .view-title {
+            margin: 0;
+            font-size: 20px;
+            color: var(--primary-color);
+        }
+
+        .view-modal .view-content {
+            background: var(--warm-cream);
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            white-space: pre-wrap;
+            line-height: 1.6;
+            color: var(--text-color);
+            box-shadow: inset 0 1px 2px rgba(93, 78, 55, 0.08);
+        }
+
+        .view-modal .view-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .view-modal .view-tags .tag {
+            transform: none;
+        }
+
+        .confirm-modal .modal-body p {
+            margin: 0;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            color: var(--text-color);
+        }
+
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -759,6 +818,43 @@
     <!-- トースト通知 -->
     <div class="toast" id="toast"></div>
 
+    <!-- 閲覧モーダル -->
+    <div class="modal" id="viewModal" style="display: none;">
+        <div class="modal-content view-modal">
+            <div class="modal-header">
+                <h3>メモを表示</h3>
+                <button class="close-btn" onclick="closeViewModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="view-meta">
+                    <span id="viewMemoCategory" class="memo-category" style="display: none;"></span>
+                    <span id="viewMemoCreatedAt"></span>
+                    <span id="viewMemoUpdatedAt" style="display: none;"></span>
+                </div>
+                <h2 class="view-title" id="viewMemoTitle"></h2>
+                <div class="view-content" id="viewMemoContent"></div>
+                <div class="view-tags memo-tags" id="viewMemoTags" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 確認モーダル -->
+    <div class="modal" id="confirmModal" style="display: none;">
+        <div class="modal-content confirm-modal">
+            <div class="modal-header">
+                <h3 id="confirmModalTitle">確認</h3>
+                <button class="close-btn" onclick="cancelConfirmation()">×</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="confirmModalCancel" onclick="cancelConfirmation()">キャンセル</button>
+                <button class="btn-save" id="confirmModalConfirm" onclick="confirmConfirmation()">OK</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 編集モーダル -->
     <div class="modal" id="editModal" style="display: none;">
         <div class="modal-content">
@@ -803,6 +899,8 @@
 
         let filteredMemos = [];
         let currentEditingId = null;
+        let currentViewingId = null;
+        let confirmationResolver = null;
 
         // 初期化
         function initializeApp() {
@@ -948,25 +1046,25 @@
                 const formattedDate = formatDate(memo.createdAt);
                 const tagsHtml = memo.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('');
                 const categoryHtml = memo.category ? `<span class="memo-category">${escapeHtml(memo.category)}</span>` : '';
-                
+
                 // メモ内容が2行を超えるかチェック
                 const lines = memo.content.split('\n');
                 const needsToggle = lines.length > 2 || memo.content.length > 100;
-                
+
                 return `
-                    <div class="memo-item">
+                    <div class="memo-item" onclick="openViewModal('${memo.id}')">
                         <div class="memo-header">
                             <h3 class="memo-title">${escapeHtml(memo.title)}</h3>
                             <div class="memo-actions">
-                                <button onclick="copyMemo('${memo.id}')" title="コピー">📋</button>
-                                <button onclick="openEditModal('${memo.id}')" title="編集">✏️</button>
-                                <button onclick="deleteMemo('${memo.id}')" title="削除">🗑️</button>
+                                <button onclick="handleCopyMemo(event, '${memo.id}')" title="コピー">📋</button>
+                                <button onclick="handleEditMemo(event, '${memo.id}')" title="編集">✏️</button>
+                                <button onclick="handleDeleteMemo(event, '${memo.id}')" title="削除">🗑️</button>
                             </div>
                         </div>
                         <div class="memo-meta">
                             ${categoryHtml}
                             <span>${formattedDate}</span>
-                            ${needsToggle ? `<button class="expand-toggle" onclick="toggleMemoContent('${memo.id}')">展開</button>` : ''}
+                            ${needsToggle ? `<button class="expand-toggle" data-toggle-id="${memo.id}" onclick="toggleMemoContent(event, '${memo.id}')">展開</button>` : ''}
                         </div>
                         <div class="memo-content ${needsToggle ? 'collapsed' : ''}" id="content-${memo.id}">${escapeHtml(memo.content)}</div>
                         ${tagsHtml ? `<div class="memo-tags">${tagsHtml}</div>` : ''}
@@ -1022,6 +1120,66 @@
         }
 
         // メモコピー
+        function handleCopyMemo(event, memoId) {
+            event.stopPropagation();
+            copyMemo(memoId);
+        }
+
+        function handleEditMemo(event, memoId) {
+            event.stopPropagation();
+            openEditModal(memoId);
+        }
+
+        function handleDeleteMemo(event, memoId) {
+            event.stopPropagation();
+            deleteMemo(memoId);
+        }
+
+        function showConfirmation(options = {}) {
+            const {
+                title = '確認',
+                message = '',
+                confirmLabel = 'OK',
+                cancelLabel = 'キャンセル'
+            } = options;
+
+            if (confirmationResolver) {
+                confirmationResolver(false);
+                confirmationResolver = null;
+            }
+
+            return new Promise(resolve => {
+                confirmationResolver = resolve;
+
+                document.getElementById('confirmModalTitle').textContent = title;
+                document.getElementById('confirmModalMessage').textContent = message;
+                document.getElementById('confirmModalConfirm').textContent = confirmLabel;
+                document.getElementById('confirmModalCancel').textContent = cancelLabel;
+
+                document.getElementById('confirmModal').style.display = 'flex';
+            });
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+        }
+
+        function confirmConfirmation() {
+            if (confirmationResolver) {
+                confirmationResolver(true);
+                confirmationResolver = null;
+            }
+            closeConfirmModal();
+        }
+
+        function cancelConfirmation() {
+            if (confirmationResolver) {
+                confirmationResolver(false);
+                confirmationResolver = null;
+            }
+            closeConfirmModal();
+        }
+
         function copyMemo(id) {
             const memo = appState.memos.find(m => m.id === id);
             if (!memo) return;
@@ -1077,13 +1235,71 @@
             document.body.removeChild(textArea);
         }
 
+        // メモ閲覧モーダル
+        function openViewModal(memoId) {
+            const memo = appState.memos.find(m => m.id === memoId);
+            if (!memo) return;
+
+            currentViewingId = memoId;
+
+            const titleElement = document.getElementById('viewMemoTitle');
+            const categoryElement = document.getElementById('viewMemoCategory');
+            const createdAtElement = document.getElementById('viewMemoCreatedAt');
+            const updatedAtElement = document.getElementById('viewMemoUpdatedAt');
+            const contentElement = document.getElementById('viewMemoContent');
+            const tagsContainer = document.getElementById('viewMemoTags');
+            const viewModal = document.getElementById('viewModal');
+
+            titleElement.textContent = memo.title || '無題のメモ';
+
+            if (memo.category) {
+                categoryElement.textContent = memo.category;
+                categoryElement.style.display = 'inline-flex';
+            } else {
+                categoryElement.textContent = '';
+                categoryElement.style.display = 'none';
+            }
+
+            createdAtElement.textContent = `作成: ${formatDate(memo.createdAt)}`;
+
+            if (memo.updatedAt && memo.updatedAt !== memo.createdAt) {
+                updatedAtElement.textContent = `更新: ${formatDate(memo.updatedAt)}`;
+                updatedAtElement.style.display = 'inline';
+            } else {
+                updatedAtElement.textContent = '';
+                updatedAtElement.style.display = 'none';
+            }
+
+            contentElement.textContent = memo.content;
+
+            if (memo.tags && memo.tags.length > 0) {
+                tagsContainer.innerHTML = memo.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('');
+                tagsContainer.style.display = 'flex';
+            } else {
+                tagsContainer.innerHTML = '';
+                tagsContainer.style.display = 'none';
+            }
+
+            viewModal.style.display = 'flex';
+        }
+
+        function closeViewModal() {
+            const viewModal = document.getElementById('viewModal');
+            viewModal.style.display = 'none';
+            currentViewingId = null;
+        }
+
         // メモ内容の展開/折りたたみ
-        function toggleMemoContent(memoId) {
+        function toggleMemoContent(event, memoId) {
+            if (event) {
+                event.stopPropagation();
+            }
+
             const contentElement = document.getElementById(`content-${memoId}`);
-            const toggleButton = document.querySelector(`button[onclick="toggleMemoContent('${memoId}')"]`);
-            
+            const toggleButton = event ? event.currentTarget : document.querySelector(`[data-toggle-id="${memoId}"]`);
+
             if (!contentElement || !toggleButton) return;
-            
+
             if (contentElement.classList.contains('collapsed')) {
                 contentElement.classList.remove('collapsed');
                 toggleButton.textContent = '折りたたむ';
@@ -1094,39 +1310,72 @@
         }
 
         // メモ削除
-        function deleteMemo(id) {
-            if (confirm('このメモを削除しますか？')) {
-                appState.memos = appState.memos.filter(memo => memo.id !== id);
-                saveData();
-                renderMemos();
-                updateFilters();
-                updateStatus();
-                showToast('メモを削除しました', 'success');
+        async function deleteMemo(id) {
+            const memo = appState.memos.find(m => m.id === id);
+            if (!memo) return;
+
+            const memoTitle = memo.title || '無題のメモ';
+            const confirmed = await showConfirmation({
+                title: 'メモを削除',
+                message: `選択したメモ「${memoTitle}」を削除しますか？\nこの操作は元に戻せません。`,
+                confirmLabel: '削除',
+                cancelLabel: 'キャンセル'
+            });
+
+            if (!confirmed) {
+                return;
             }
+
+            appState.memos = appState.memos.filter(memoItem => memoItem.id !== id);
+            saveData();
+            if (currentViewingId === id) {
+                closeViewModal();
+            }
+            renderMemos();
+            updateFilters();
+            updateStatus();
+            showToast('メモを削除しました', 'success');
         }
 
         // 全メモ削除
-        function deleteAllMemos() {
+        async function deleteAllMemos() {
             if (appState.memos.length === 0) {
                 showToast('削除するメモがありません', 'info');
                 return;
             }
 
-            const confirmMessage = `⚠️ 危険な操作です！\n\n${appState.memos.length}件のメモを全て削除しますか？\n\nこの操作は元に戻せません。`;
-            
-            if (confirm(confirmMessage)) {
-                const secondConfirm = confirm('本当によろしいですか？この操作は元に戻すことができません。');
-                
-                if (secondConfirm) {
-                    const deletedCount = appState.memos.length;
-                    appState.memos = [];
-                    saveData();
-                    renderMemos();
-                    updateFilters();
-                    updateStatus();
-                    showToast(`${deletedCount}件のメモを削除しました`, 'success');
-                }
+            const totalMemos = appState.memos.length;
+
+            const firstConfirm = await showConfirmation({
+                title: '全てのメモを削除',
+                message: `⚠️ 危険な操作です！\n\n${totalMemos}件のメモを全て削除しますか？\nこの操作は元に戻せません。`,
+                confirmLabel: '削除する',
+                cancelLabel: 'キャンセル'
+            });
+
+            if (!firstConfirm) {
+                return;
             }
+
+            const secondConfirm = await showConfirmation({
+                title: '最終確認',
+                message: '本当によろしいですか？\nこの操作は元に戻すことができません。',
+                confirmLabel: '全て削除',
+                cancelLabel: '戻る'
+            });
+
+            if (!secondConfirm) {
+                return;
+            }
+
+            const deletedCount = appState.memos.length;
+            appState.memos = [];
+            saveData();
+            closeViewModal();
+            renderMemos();
+            updateFilters();
+            updateStatus();
+            showToast(`${deletedCount}件のメモを削除しました`, 'success');
         }
 
         // 編集モーダル
@@ -1221,6 +1470,14 @@
             if (e.target === editModal) {
                 closeEditModal();
             }
+            const viewModal = document.getElementById('viewModal');
+            if (e.target === viewModal) {
+                closeViewModal();
+            }
+            const confirmModal = document.getElementById('confirmModal');
+            if (e.target === confirmModal) {
+                cancelConfirmation();
+            }
         });
 
         // キーボードショートカット
@@ -1233,8 +1490,18 @@
 
             // ESC でモーダル閉じる
             if (e.key === 'Escape') {
-                if (document.getElementById('editModal').style.display === 'flex') {
+                const editModal = document.getElementById('editModal');
+                const viewModal = document.getElementById('viewModal');
+                const confirmModal = document.getElementById('confirmModal');
+
+                if (editModal.style.display === 'flex') {
                     closeEditModal();
+                }
+                if (viewModal.style.display === 'flex') {
+                    closeViewModal();
+                }
+                if (confirmModal.style.display === 'flex') {
+                    cancelConfirmation();
                 }
             }
         });
