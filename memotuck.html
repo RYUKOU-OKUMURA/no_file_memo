@@ -602,6 +602,33 @@
             position: relative;
         }
 
+        #editModal .modal-content {
+            transition: all 0.3s ease;
+        }
+
+        #editModal .modal-content.edit-expanded {
+            max-width: 900px;
+            width: 95%;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #editModal .modal-content.edit-expanded .modal-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #editModal .modal-content.edit-expanded .edit-modal-fields {
+            flex: 1;
+        }
+
+        #editModal .modal-content.edit-expanded .modal-textarea {
+            flex: 1;
+            min-height: 0;
+        }
+
         .view-modal {
             max-width: 600px;
             width: 95%;
@@ -668,6 +695,37 @@
             border-bottom: 1px solid var(--border-color);
         }
 
+        .modal-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-tertiary {
+            padding: 8px 14px;
+            border: 2px solid var(--accent-color);
+            background: linear-gradient(135deg, var(--warm-cream) 0%, var(--aged-paper) 100%);
+            color: var(--primary-color);
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 3px 6px rgba(93, 78, 55, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .btn-tertiary:hover {
+            background: linear-gradient(135deg, var(--old-gold) 0%, var(--copper-accent) 100%);
+            color: var(--paper-bg);
+            transform: translateY(-1px);
+            box-shadow: 0 5px 10px rgba(93, 78, 55, 0.25);
+        }
+
+        .btn-tertiary[aria-pressed="true"] {
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--primary-color) 100%);
+            color: var(--paper-bg);
+        }
+
         .modal-header h3 {
             margin: 0;
             color: var(--primary-color);
@@ -675,6 +733,44 @@
 
         .modal-body {
             padding: 20px;
+        }
+
+        .edit-modal-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .modal-input,
+        .modal-select,
+        .modal-textarea,
+        .modal-tag-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            font-size: 14px;
+            color: var(--text-color);
+            background: var(--warm-cream);
+            box-shadow: inset 0 1px 3px rgba(93, 78, 55, 0.1);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .modal-textarea {
+            min-height: 120px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .modal-input:focus,
+        .modal-select:focus,
+        .modal-textarea:focus,
+        .modal-tag-input:focus {
+            outline: none;
+            border-color: var(--copper-accent);
+            box-shadow: inset 0 1px 3px rgba(93, 78, 55, 0.15), 0 0 6px rgba(184, 115, 51, 0.3);
+            background: var(--paper-bg);
         }
 
         .modal-footer {
@@ -860,12 +956,15 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>メモを編集</h3>
-                <button class="close-btn" onclick="closeEditModal()">×</button>
+                <div class="modal-header-actions">
+                    <button type="button" class="btn-tertiary" id="editExpandToggle" onclick="toggleEditModalExpand()" aria-pressed="false" title="入力欄を拡大表示">拡大表示</button>
+                    <button class="close-btn" onclick="closeEditModal()">×</button>
+                </div>
             </div>
             <div class="modal-body">
-                <div style="margin-bottom: 15px;">
-                    <input type="text" id="editMemoTitle" placeholder="メモのタイトル" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px;">
-                    <select id="editMemoCategory" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px;">
+                <div class="edit-modal-fields">
+                    <input type="text" id="editMemoTitle" class="modal-input" placeholder="メモのタイトル">
+                    <select id="editMemoCategory" class="modal-select">
                         <option value="">カテゴリなし</option>
                         <option value="仕事">仕事</option>
                         <option value="プライベート">プライベート</option>
@@ -874,8 +973,8 @@
                         <option value="メモ">メモ</option>
                         <option value="学習">学習</option>
                     </select>
-                    <textarea id="editMemoContent" style="width: 100%; min-height: 120px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: Georgia, serif; margin-bottom: 10px;"></textarea>
-                    <input type="text" id="editMemoTags" placeholder="タグ（カンマ区切り）" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                    <textarea id="editMemoContent" class="modal-textarea" placeholder="メモの内容を編集..."></textarea>
+                    <input type="text" id="editMemoTags" class="modal-input modal-tag-input" placeholder="タグ（カンマ区切り）">
                 </div>
             </div>
             <div class="modal-footer">
@@ -1379,11 +1478,33 @@
         }
 
         // 編集モーダル
+        function setEditModalExpanded(expanded) {
+            const modalContent = document.querySelector('#editModal .modal-content');
+            const toggleBtn = document.getElementById('editExpandToggle');
+
+            if (modalContent) {
+                modalContent.classList.toggle('edit-expanded', Boolean(expanded));
+            }
+
+            if (toggleBtn) {
+                toggleBtn.setAttribute('aria-pressed', expanded ? 'true' : 'false');
+                toggleBtn.textContent = expanded ? '標準表示' : '拡大表示';
+                toggleBtn.title = expanded ? '標準サイズに戻す' : '入力欄を拡大表示';
+            }
+        }
+
+        function toggleEditModalExpand() {
+            const modalContent = document.querySelector('#editModal .modal-content');
+            const isExpanded = modalContent ? modalContent.classList.contains('edit-expanded') : false;
+            setEditModalExpanded(!isExpanded);
+        }
+
         function openEditModal(memoId) {
             const memo = appState.memos.find(m => m.id === memoId);
             if (!memo) return;
 
             currentEditingId = memoId;
+            setEditModalExpanded(false);
 
             document.getElementById('editMemoTitle').value = memo.title;
             document.getElementById('editMemoCategory').value = memo.category || '';
@@ -1396,6 +1517,7 @@
         function closeEditModal() {
             document.getElementById('editModal').style.display = 'none';
             currentEditingId = null;
+            setEditModalExpanded(false);
         }
 
         function saveEditMemo() {
