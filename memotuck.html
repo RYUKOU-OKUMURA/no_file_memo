@@ -207,10 +207,10 @@
             line-height: 1.6;
             background: var(--warm-cream);
             color: var(--text-color);
-            resize: vertical;
             box-shadow: inset 0 2px 4px rgba(93, 78, 55, 0.1);
             transition: all 0.3s ease;
             margin-bottom: 15px;
+            overflow-y: auto;
         }
 
         .memo-textarea:focus {
@@ -218,6 +218,86 @@
             border-color: var(--copper-accent);
             box-shadow: inset 0 2px 4px rgba(93, 78, 55, 0.15), 0 0 8px rgba(184, 115, 51, 0.3);
             background: var(--paper-bg);
+        }
+
+        .memo-textarea[contenteditable="true"] {
+            outline: none;
+            white-space: pre-wrap;
+        }
+
+        .memo-textarea[contenteditable="true"]:empty::before {
+            content: attr(data-placeholder);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+        
+        .editor-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .format-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .format-button {
+            padding: 6px 12px;
+            border: 2px solid var(--accent-color);
+            background: linear-gradient(135deg, var(--warm-cream) 0%, var(--aged-paper) 100%);
+            color: var(--primary-color);
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(93, 78, 55, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .format-button:hover {
+            background: linear-gradient(135deg, var(--old-gold) 0%, var(--copper-accent) 100%);
+            color: var(--paper-bg);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(93, 78, 55, 0.2);
+        }
+
+        .format-button.is-active {
+            background: linear-gradient(135deg, var(--accent-color) 0%, var(--primary-color) 100%);
+            color: var(--paper-bg);
+        }
+
+        .color-palette {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .color-swatch {
+            width: 26px;
+            height: 26px;
+            padding: 0;
+            border: 2px solid var(--accent-color);
+            border-radius: 50%;
+            background: var(--warm-cream);
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(93, 78, 55, 0.15);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .color-swatch::after {
+            content: '';
+            position: absolute;
+            inset: 4px;
+            border-radius: 50%;
+            background: var(--swatch-color, var(--primary-color));
+        }
+
+        .color-swatch:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(93, 78, 55, 0.2);
         }
 
         .form-actions {
@@ -629,6 +709,30 @@
             min-height: 0;
         }
 
+        #viewModal .modal-content {
+            transition: all 0.3s ease;
+        }
+
+        #viewModal .modal-content.view-expanded {
+            max-width: 900px;
+            width: 95%;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #viewModal .modal-content.view-expanded .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #viewModal .modal-content.view-expanded .view-content {
+            flex: 1;
+            min-height: 0;
+        }
+
         .view-modal {
             max-width: 600px;
             width: 95%;
@@ -759,8 +863,19 @@
 
         .modal-textarea {
             min-height: 120px;
-            resize: vertical;
             line-height: 1.6;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .modal-textarea[contenteditable="true"] {
+            outline: none;
+        }
+
+        .modal-textarea[contenteditable="true"]:empty::before {
+            content: attr(data-placeholder);
+            color: var(--text-muted);
+            pointer-events: none;
         }
 
         .modal-input:focus,
@@ -871,7 +986,20 @@
                     <option value="学習">学習</option>
                 </select>
             </div>
-            <textarea id="memoContent" class="memo-textarea" placeholder="ここにメモを入力してください..."></textarea>
+            <div class="editor-container">
+                <div class="format-toolbar" aria-label="メモ書式設定">
+                    <button type="button" class="format-button" onclick="formatEditorSelection('memoContent', 'bold')" onmousedown="prepareEditorAction(event, 'memoContent')" title="選択範囲を太字にする"><strong>B</strong></button>
+                    <div class="color-palette" role="group" aria-label="文字色を選択">
+                        <button type="button" class="color-swatch" style="--swatch-color:#3E2723" title="標準色" onmousedown="prepareEditorAction(event, 'memoContent')" onclick="applyEditorColorPreset('memoContent', '#3E2723')"></button>
+                        <button type="button" class="color-swatch" style="--swatch-color:#E53935" title="レッド" onmousedown="prepareEditorAction(event, 'memoContent')" onclick="applyEditorColorPreset('memoContent', '#E53935')"></button>
+                        <button type="button" class="color-swatch" style="--swatch-color:#2E7D32" title="グリーン" onmousedown="prepareEditorAction(event, 'memoContent')" onclick="applyEditorColorPreset('memoContent', '#2E7D32')"></button>
+                        <button type="button" class="color-swatch" style="--swatch-color:#1565C0" title="ブルー" onmousedown="prepareEditorAction(event, 'memoContent')" onclick="applyEditorColorPreset('memoContent', '#1565C0')"></button>
+                        <button type="button" class="color-swatch" style="--swatch-color:#F57C00" title="オレンジ" onmousedown="prepareEditorAction(event, 'memoContent')" onclick="applyEditorColorPreset('memoContent', '#F57C00')"></button>
+                    </div>
+                    <button type="button" class="format-button" onclick="resetEditorColor('memoContent')" onmousedown="prepareEditorAction(event, 'memoContent')" title="文字色を標準に戻す">標準色</button>
+                </div>
+                <div id="memoContent" class="memo-textarea" contenteditable="true" data-placeholder="ここにメモを入力してください..."></div>
+            </div>
             <div class="form-row">
                 <input type="text" id="memoTags" placeholder="タグ（カンマ区切り）例: 重要, 緊急, アイデア">
             </div>
@@ -919,7 +1047,10 @@
         <div class="modal-content view-modal">
             <div class="modal-header">
                 <h3>メモを表示</h3>
-                <button class="close-btn" onclick="closeViewModal()">×</button>
+                <div class="modal-header-actions">
+                    <button type="button" class="btn-tertiary" id="viewExpandToggle" onclick="toggleViewModalExpand()" aria-pressed="false" title="内容を拡大表示">拡大表示</button>
+                    <button class="close-btn" onclick="closeViewModal()">×</button>
+                </div>
             </div>
             <div class="modal-body">
                 <div class="view-meta">
@@ -973,7 +1104,20 @@
                         <option value="メモ">メモ</option>
                         <option value="学習">学習</option>
                     </select>
-                    <textarea id="editMemoContent" class="modal-textarea" placeholder="メモの内容を編集..."></textarea>
+                    <div class="editor-container">
+                        <div class="format-toolbar" aria-label="メモ書式設定（編集）">
+                            <button type="button" class="format-button" onclick="formatEditorSelection('editMemoContent', 'bold')" onmousedown="prepareEditorAction(event, 'editMemoContent')" title="選択範囲を太字にする"><strong>B</strong></button>
+                            <div class="color-palette" role="group" aria-label="文字色を選択">
+                                <button type="button" class="color-swatch" style="--swatch-color:#3E2723" title="標準色" onmousedown="prepareEditorAction(event, 'editMemoContent')" onclick="applyEditorColorPreset('editMemoContent', '#3E2723')"></button>
+                                <button type="button" class="color-swatch" style="--swatch-color:#E53935" title="レッド" onmousedown="prepareEditorAction(event, 'editMemoContent')" onclick="applyEditorColorPreset('editMemoContent', '#E53935')"></button>
+                                <button type="button" class="color-swatch" style="--swatch-color:#2E7D32" title="グリーン" onmousedown="prepareEditorAction(event, 'editMemoContent')" onclick="applyEditorColorPreset('editMemoContent', '#2E7D32')"></button>
+                                <button type="button" class="color-swatch" style="--swatch-color:#1565C0" title="ブルー" onmousedown="prepareEditorAction(event, 'editMemoContent')" onclick="applyEditorColorPreset('editMemoContent', '#1565C0')"></button>
+                                <button type="button" class="color-swatch" style="--swatch-color:#F57C00" title="オレンジ" onmousedown="prepareEditorAction(event, 'editMemoContent')" onclick="applyEditorColorPreset('editMemoContent', '#F57C00')"></button>
+                            </div>
+                            <button type="button" class="format-button" onclick="resetEditorColor('editMemoContent')" onmousedown="prepareEditorAction(event, 'editMemoContent')" title="文字色を標準に戻す">標準色</button>
+                        </div>
+                        <div id="editMemoContent" class="modal-textarea" contenteditable="true" data-placeholder="メモの内容を編集..."></div>
+                    </div>
                     <input type="text" id="editMemoTags" class="modal-input modal-tag-input" placeholder="タグ（カンマ区切り）">
                 </div>
             </div>
@@ -991,6 +1135,7 @@
          */
 
         const STORAGE_KEY = 'nofilememory-data';
+        const DEFAULT_TEXT_COLOR = '#3E2723';
         let appState = {
             memos: [],
             lastExportAt: null
@@ -1000,6 +1145,7 @@
         let currentEditingId = null;
         let currentViewingId = null;
         let confirmationResolver = null;
+        const editorSelections = {};
 
         // 初期化
         function initializeApp() {
@@ -1007,6 +1153,12 @@
             renderMemos();
             updateFilters();
             updateStatus();
+            attachEditorEvents('memoContent');
+            attachEditorEvents('editMemoContent');
+            setEditorContentHtml('memoContent', '');
+            setEditorContentHtml('editMemoContent', '');
+            saveEditorSelection('memoContent');
+            saveEditorSelection('editMemoContent');
         }
 
         // データ読み込み
@@ -1017,6 +1169,10 @@
                     appState = JSON.parse(stored);
                     if (!Array.isArray(appState.memos)) {
                         appState.memos = [];
+                    }
+                    appState.memos = appState.memos.map(normalizeMemoData);
+                    if (!('lastExportAt' in appState)) {
+                        appState.lastExportAt = null;
                     }
                 }
             } catch (error) {
@@ -1043,11 +1199,12 @@
         // メモ保存
         function saveMemo() {
             const title = document.getElementById('memoTitle').value.trim();
-            const content = document.getElementById('memoContent').value.trim();
+            const contentHtml = getEditorContentHtml('memoContent');
+            const contentText = stripHtml(contentHtml);
             const category = document.getElementById('memoCategory').value;
             const tagsInput = document.getElementById('memoTags').value.trim();
 
-            if (!content) {
+            if (!contentText.trim()) {
                 showToast('メモの内容を入力してください', 'error');
                 return;
             }
@@ -1057,7 +1214,8 @@
             const memo = {
                 id: generateId(),
                 title: title || '無題のメモ',
-                content: content,
+                content: contentHtml,
+                contentText: contentText,
                 category: category,
                 tags: tags,
                 createdAt: new Date().toISOString(),
@@ -1070,6 +1228,7 @@
             updateFilters();
             updateStatus();
             clearForm();
+            saveEditorSelection('memoContent');
 
             showToast('メモを保存しました', 'success');
         }
@@ -1077,9 +1236,9 @@
         // フォームクリア
         function clearForm() {
             document.getElementById('memoTitle').value = '';
-            document.getElementById('memoContent').value = '';
             document.getElementById('memoCategory').value = '';
             document.getElementById('memoTags').value = '';
+            setEditorContentHtml('memoContent', '');
         }
 
         // メモフィルタリング
@@ -1092,7 +1251,7 @@
             filteredMemos = appState.memos.filter(memo => {
                 // 検索文字列でフィルタ
                 if (searchTerm) {
-                    const searchableText = (memo.title + ' ' + memo.content + ' ' + memo.tags.join(' ')).toLowerCase();
+                    const searchableText = (memo.title + ' ' + memo.contentText + ' ' + memo.tags.join(' ')).toLowerCase();
                     if (!searchableText.includes(searchTerm)) return false;
                 }
 
@@ -1145,10 +1304,12 @@
                 const formattedDate = formatDate(memo.createdAt);
                 const tagsHtml = memo.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('');
                 const categoryHtml = memo.category ? `<span class="memo-category">${escapeHtml(memo.category)}</span>` : '';
+                const contentText = memo.contentText || stripHtml(memo.content || '');
 
                 // メモ内容が2行を超えるかチェック
-                const lines = memo.content.split('\n');
-                const needsToggle = lines.length > 2 || memo.content.length > 100;
+                const lines = contentText.split('\n');
+                const needsToggle = lines.length > 2 || contentText.length > 100;
+                const previewHtml = escapeHtml(contentText).replace(/\n/g, '<br>');
 
                 return `
                     <div class="memo-item" onclick="openViewModal('${memo.id}')">
@@ -1165,7 +1326,7 @@
                             <span>${formattedDate}</span>
                             ${needsToggle ? `<button class="expand-toggle" data-toggle-id="${memo.id}" onclick="toggleMemoContent(event, '${memo.id}')">展開</button>` : ''}
                         </div>
-                        <div class="memo-content ${needsToggle ? 'collapsed' : ''}" id="content-${memo.id}">${escapeHtml(memo.content)}</div>
+                        <div class="memo-content ${needsToggle ? 'collapsed' : ''}" id="content-${memo.id}">${previewHtml}</div>
                         ${tagsHtml ? `<div class="memo-tags">${tagsHtml}</div>` : ''}
                     </div>
                 `;
@@ -1287,7 +1448,7 @@
             if (memo.title !== '無題のメモ') {
                 copyText += memo.title + '\n\n';
             }
-            copyText += memo.content;
+            copyText += memo.contentText || '';
             
             if (memo.tags && memo.tags.length > 0) {
                 copyText += '\n\nタグ: ' + memo.tags.join(', ');
@@ -1335,11 +1496,33 @@
         }
 
         // メモ閲覧モーダル
+        function setViewModalExpanded(expanded) {
+            const modalContent = document.querySelector('#viewModal .modal-content');
+            const toggleBtn = document.getElementById('viewExpandToggle');
+
+            if (modalContent) {
+                modalContent.classList.toggle('view-expanded', Boolean(expanded));
+            }
+
+            if (toggleBtn) {
+                toggleBtn.setAttribute('aria-pressed', expanded ? 'true' : 'false');
+                toggleBtn.textContent = expanded ? '標準表示' : '拡大表示';
+                toggleBtn.title = expanded ? '標準サイズに戻す' : '内容を拡大表示';
+            }
+        }
+
+        function toggleViewModalExpand() {
+            const modalContent = document.querySelector('#viewModal .modal-content');
+            const isExpanded = modalContent ? modalContent.classList.contains('view-expanded') : false;
+            setViewModalExpanded(!isExpanded);
+        }
+
         function openViewModal(memoId) {
             const memo = appState.memos.find(m => m.id === memoId);
             if (!memo) return;
 
             currentViewingId = memoId;
+            setViewModalExpanded(false);
 
             const titleElement = document.getElementById('viewMemoTitle');
             const categoryElement = document.getElementById('viewMemoCategory');
@@ -1369,7 +1552,7 @@
                 updatedAtElement.style.display = 'none';
             }
 
-            contentElement.textContent = memo.content;
+            contentElement.innerHTML = memo.content || '';
 
             if (memo.tags && memo.tags.length > 0) {
                 tagsContainer.innerHTML = memo.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('');
@@ -1386,6 +1569,7 @@
             const viewModal = document.getElementById('viewModal');
             viewModal.style.display = 'none';
             currentViewingId = null;
+            setViewModalExpanded(false);
         }
 
         // メモ内容の展開/折りたたみ
@@ -1508,16 +1692,18 @@
 
             document.getElementById('editMemoTitle').value = memo.title;
             document.getElementById('editMemoCategory').value = memo.category || '';
-            document.getElementById('editMemoContent').value = memo.content;
+            setEditorContentHtml('editMemoContent', memo.content || '');
             document.getElementById('editMemoTags').value = memo.tags.join(', ');
 
             document.getElementById('editModal').style.display = 'flex';
+            saveEditorSelection('editMemoContent');
         }
 
         function closeEditModal() {
             document.getElementById('editModal').style.display = 'none';
             currentEditingId = null;
             setEditModalExpanded(false);
+            setEditorContentHtml('editMemoContent', '');
         }
 
         function saveEditMemo() {
@@ -1527,11 +1713,12 @@
             if (!memo) return;
 
             const title = document.getElementById('editMemoTitle').value.trim();
-            const content = document.getElementById('editMemoContent').value.trim();
+            const contentHtml = getEditorContentHtml('editMemoContent');
+            const contentText = stripHtml(contentHtml);
             const category = document.getElementById('editMemoCategory').value;
             const tagsInput = document.getElementById('editMemoTags').value.trim();
 
-            if (!content) {
+            if (!contentText.trim()) {
                 showToast('メモの内容を入力してください', 'error');
                 return;
             }
@@ -1539,7 +1726,8 @@
             const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
 
             memo.title = title || '無題のメモ';
-            memo.content = content;
+            memo.content = contentHtml;
+            memo.contentText = contentText;
             memo.category = category;
             memo.tags = tags;
             memo.updatedAt = new Date().toISOString();
@@ -1556,6 +1744,235 @@
 
 
 
+
+
+        function attachEditorEvents(editorId) {
+            const editor = document.getElementById(editorId);
+            if (!editor) return;
+
+            editor.addEventListener('focus', () => {
+                saveEditorSelection(editorId);
+            });
+
+            const saveHandler = () => saveEditorSelection(editorId);
+            editor.addEventListener('keyup', saveHandler);
+            editor.addEventListener('mouseup', saveHandler);
+            editor.addEventListener('input', saveHandler);
+        }
+
+        function saveEditorSelection(editorId) {
+            const editor = document.getElementById(editorId);
+            if (!editor) return;
+
+            const selection = window.getSelection();
+            if (!selection || selection.rangeCount === 0) return;
+
+            const range = selection.getRangeAt(0);
+            if (!editor.contains(range.commonAncestorContainer)) return;
+
+            editorSelections[editorId] = range.cloneRange();
+        }
+
+        function restoreEditorSelection(editorId) {
+            const editor = document.getElementById(editorId);
+            if (!editor) return;
+
+            const range = editorSelections[editorId];
+            if (!range) {
+                editor.focus();
+                return;
+            }
+
+            const selection = window.getSelection();
+            editor.focus();
+            selection.removeAllRanges();
+            try {
+                selection.addRange(range);
+            } catch (error) {
+                editor.focus();
+            }
+        }
+
+        function formatEditorSelection(editorId, command, value = null) {
+            restoreEditorSelection(editorId);
+            document.execCommand(command, false, value);
+            saveEditorSelection(editorId);
+        }
+
+        function applyEditorColor(editorId, colorValue) {
+            if (!colorValue) return;
+            restoreEditorSelection(editorId);
+            const sanitizedColor = sanitizeColor(colorValue);
+            if (sanitizedColor) {
+                document.execCommand('foreColor', false, sanitizedColor);
+            }
+            saveEditorSelection(editorId);
+        }
+
+        function resetEditorColor(editorId) {
+            applyEditorColor(editorId, DEFAULT_TEXT_COLOR);
+        }
+
+        function applyEditorColorPreset(editorId, colorValue) {
+            applyEditorColor(editorId, colorValue);
+        }
+
+        function prepareEditorAction(event, editorId) {
+            saveEditorSelection(editorId);
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        }
+
+        function getEditorContentHtml(editorId) {
+            const editor = document.getElementById(editorId);
+            if (!editor) return '';
+            const rawHtml = editor.innerHTML;
+            return sanitizeRichText(rawHtml);
+        }
+
+        function setEditorContentHtml(editorId, html) {
+            const editor = document.getElementById(editorId);
+            if (!editor) return;
+            if (!html) {
+                editor.innerHTML = '';
+                return;
+            }
+            editor.innerHTML = sanitizeRichText(html);
+        }
+
+        function normalizeEditorHtml(html = '') {
+            let processed = html;
+            processed = processed.replace(/&nbsp;/gi, ' ');
+            processed = processed.replace(/<div><br><\/div>/gi, '<br>');
+            processed = processed.replace(/<p><br><\/p>/gi, '<br>');
+            processed = processed.replace(/<div>([\s\S]*?)<\/div>/gi, '$1<br>');
+            processed = processed.replace(/<p>([\s\S]*?)<\/p>/gi, '$1<br>');
+            processed = processed.replace(/<\/?div>/gi, '');
+            processed = processed.replace(/<\/?p>/gi, '');
+            processed = processed.replace(/(\r\n|\r)/g, '\n');
+            processed = processed.replace(/(<br>\s*){3,}/gi, '<br><br>');
+            processed = processed.replace(/(?:<br>\s*)+$/gi, '');
+            return processed.trim();
+        }
+
+        function sanitizeRichText(html = '') {
+            const template = document.createElement('template');
+            template.innerHTML = normalizeEditorHtml(html);
+
+            const traverse = (node) => {
+                const children = Array.from(node.childNodes);
+                children.forEach(child => {
+                    if (child.nodeType === Node.ELEMENT_NODE) {
+                        switch (child.tagName) {
+                            case 'STRONG':
+                                Array.from(child.attributes).forEach(attr => child.removeAttribute(attr.name));
+                                traverse(child);
+                                break;
+                            case 'B': {
+                                const strong = document.createElement('strong');
+                                while (child.firstChild) {
+                                    strong.appendChild(child.firstChild);
+                                }
+                                child.parentNode.replaceChild(strong, child);
+                                traverse(strong);
+                                break;
+                            }
+                            case 'SPAN': {
+                                const color = child.style.color || child.getAttribute('color');
+                                const sanitizedColor = sanitizeColor(color);
+                                child.removeAttribute('color');
+                                child.removeAttribute('style');
+                                if (sanitizedColor) {
+                                    child.style.color = sanitizedColor;
+                                    traverse(child);
+                                } else {
+                                    while (child.firstChild) {
+                                        child.parentNode.insertBefore(child.firstChild, child);
+                                    }
+                                    child.parentNode.removeChild(child);
+                                }
+                                break;
+                            }
+                            case 'FONT': {
+                                const color = child.getAttribute('color');
+                                const sanitizedColor = sanitizeColor(color);
+                                if (sanitizedColor) {
+                                    const span = document.createElement('span');
+                                    span.style.color = sanitizedColor;
+                                    while (child.firstChild) {
+                                        span.appendChild(child.firstChild);
+                                    }
+                                    child.parentNode.replaceChild(span, child);
+                                    traverse(span);
+                                } else {
+                                    while (child.firstChild) {
+                                        child.parentNode.insertBefore(child.firstChild, child);
+                                    }
+                                    child.parentNode.removeChild(child);
+                                }
+                                break;
+                            }
+                            case 'BR':
+                                Array.from(child.attributes).forEach(attr => child.removeAttribute(attr.name));
+                                break;
+                            default:
+                                while (child.firstChild) {
+                                    child.parentNode.insertBefore(child.firstChild, child);
+                                }
+                                child.parentNode.removeChild(child);
+                                break;
+                        }
+                    } else if (child.nodeType === Node.COMMENT_NODE) {
+                        child.parentNode.removeChild(child);
+                    }
+                });
+            };
+
+            traverse(template.content);
+
+            return template.innerHTML
+                .replace(/(<br>\s*){3,}/gi, '<br><br>')
+                .replace(/(?:<br>\s*)+$/gi, '')
+                .trim();
+        }
+
+        function sanitizeColor(value) {
+            if (!value) return null;
+            const test = document.createElement('span');
+            test.style.color = '';
+            test.style.color = value;
+            const sanitized = test.style.color;
+            return sanitized ? sanitized : null;
+        }
+
+        function stripHtml(html = '') {
+            if (!html) return '';
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            return (div.textContent || '').replace(/\u00A0/g, ' ');
+        }
+
+        function plainTextToRichHtml(text = '') {
+            if (!text) return '';
+            const escaped = escapeHtml(text);
+            return escaped.replace(/(\r\n|\n|\r)/g, '<br>').replace(/(?:<br>\s*)+$/gi, '').trim();
+        }
+
+        function normalizeMemoData(memo = {}) {
+            const normalized = { ...memo };
+            const rawContent = typeof memo.content === 'string' ? memo.content : '';
+            const hasHtml = /<[a-z][\s\S]*>/i.test(rawContent);
+            const sanitizedContent = hasHtml
+                ? sanitizeRichText(rawContent)
+                : sanitizeRichText(plainTextToRichHtml(rawContent));
+            normalized.content = sanitizedContent;
+            normalized.contentText = typeof memo.contentText === 'string' && memo.contentText.length
+                ? memo.contentText
+                : stripHtml(sanitizedContent);
+            return normalized;
+        }
 
 
         // ユーティリティ関数
